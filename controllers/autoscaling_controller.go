@@ -50,6 +50,7 @@ import (
 	common_rbac "github.com/openstack-k8s-operators/lib-common/modules/common/rbac"
 	secret "github.com/openstack-k8s-operators/lib-common/modules/common/secret"
 	service "github.com/openstack-k8s-operators/lib-common/modules/common/service"
+	"github.com/openstack-k8s-operators/lib-common/modules/common/tls"
 	util "github.com/openstack-k8s-operators/lib-common/modules/common/util"
 
 	heatv1 "github.com/openstack-k8s-operators/heat-operator/api/v1beta1"
@@ -520,7 +521,22 @@ func (r *AutoscalingReconciler) generateServiceConfig(
 	mc *memcachedv1.Memcached,
 ) error {
 	cmLabels := labels.GetLabels(instance, labels.GetGroupLabel(autoscaling.ServiceName), map[string]string{})
-	customData := map[string]string{common.CustomServiceConfigFileName: instance.Spec.Aodh.CustomServiceConfig}
+
+	// the aodh controller currently creates the db with the user
+	db, err := mariadbv1.GetDatabaseByName(ctx, h, instance.Spec.Aodh.DatabaseUser)
+	if err != nil {
+		return err
+	}
+
+	var tlsCfg *tls.Service
+	if instance.Spec.Aodh.TLS.CaBundleSecretName != "" {
+		tlsCfg = &tls.Service{}
+	}
+
+	customData := map[string]string{
+		common.CustomServiceConfigFileName: instance.Spec.Aodh.CustomServiceConfig,
+		"my.cnf":                           db.GetDatabaseClientConfig(tlsCfg), //(mschuppert) for now just get the default my.cnf
+	}
 	for key, data := range instance.Spec.Aodh.DefaultConfigOverwrite {
 		customData[key] = data
 	}
@@ -554,7 +570,7 @@ func (r *AutoscalingReconciler) generateServiceConfig(
 		"PrometheusPort":           instance.Status.PrometheusPort,
 		"MemcachedServers":         strings.Join(mc.Status.ServerList, ","),
 		"MemcachedServersWithInet": strings.Join(mc.Status.ServerListWithInet, ","),
-		"DatabaseConnection": fmt.Sprintf("mysql+pymysql://%s:%s@%s/%s",
+		"DatabaseConnection": fmt.Sprintf("mysql+pymysql://%s:%s@%s/%s?read_default_file=/etc/my.cnf",
 			instance.Spec.Aodh.DatabaseUser,
 			string(ospSecret.Data[instance.Spec.Aodh.PasswordSelectors.Database]),
 			instance.Status.DatabaseHostname,
