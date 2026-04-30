@@ -28,7 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
@@ -61,7 +60,6 @@ func SetupTelemetryDefaults(defaults TelemetryDefaults) {
 	telemetrylog.Info("Telemetry defaults initialized", "defaults", defaults)
 }
 
-var _ webhook.Defaulter = &Telemetry{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *Telemetry) Default() {
@@ -130,7 +128,6 @@ func (spec *TelemetrySpecCore) Default() {
 	spec.CloudKitty.Default()
 }
 
-var _ webhook.Validator = &Telemetry{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Telemetry) ValidateCreate() (admission.Warnings, error) {

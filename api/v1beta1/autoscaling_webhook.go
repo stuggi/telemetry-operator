@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
@@ -48,7 +47,6 @@ func SetupAutoscalingDefaults(defaults AutoscalingDefaults) {
 	autoscalinglog.Info("Autoscaling defaults initialized", "defaults", defaults)
 }
 
-var _ webhook.Defaulter = &Autoscaling{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *Autoscaling) Default() {
@@ -165,7 +163,6 @@ func (spec *AutoscalingSpecCore) SetDefaultRouteAnnotations(annotations map[stri
 	annotations[haProxyAnno] = timeout
 }
 
-var _ webhook.Validator = &Autoscaling{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Autoscaling) ValidateCreate() (admission.Warnings, error) {

@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	common_webhook "github.com/openstack-k8s-operators/lib-common/modules/common/webhook"
 )
@@ -47,7 +46,6 @@ func SetupCloudKittyDefaults(defaults CloudKittyDefaults) {
 	cloudKittyLog.Info("CloudKitty defaults initialized", "defaults", defaults)
 }
 
-var _ webhook.Defaulter = &CloudKitty{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *CloudKitty) Default() {
@@ -134,7 +132,6 @@ func (spec *CloudKittySpecBase) validateDeprecatedFieldsUpdate(old CloudKittySpe
 	return common_webhook.ValidateDeprecatedFieldsUpdate(deprecatedFields, basePath)
 }
 
-var _ webhook.Validator = &CloudKitty{}
 
 func (r *ObjectStorageSpec) Validate(basePath *field.Path) field.ErrorList {
 	var allErrs field.ErrorList
